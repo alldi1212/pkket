@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jadwal Piket HIMATIC</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      height: 100vh;
+      background: linear-gradient(135deg, #1F4E79, #2980B9, #1F4E79);
+      background-size: 300% 300%;
+      animation: bgMove 8s infinite alternate;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      color: white;
+      opacity: 0;
+      animation: fadeInPage 1.5s ease forwards;
+    }
+
+    @keyframes bgMove {
+      0% { background-position: left top; }
+      100% { background-position: right bottom; }
+    }
+
+    @keyframes fadeInPage {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes pulseLogo {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+
+    img.logo {
+      width: 120px;
+      margin-top: 30px;
+      border-radius: 10px;
+      background-color: rgba(255,255,255,0.1);
+      padding: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      animation: pulseLogo 4s ease-in-out infinite, fadeInElement 1.8s ease forwards;
+      opacity: 0;
+    }
+
+    h1 {
+      margin-top: 15px;
+      font-size: 2.5em;
+      text-align: center;
+      letter-spacing: 2px;
+      text-shadow: 2px 2px 6px rgba(0,0,0,0.4);
+      opacity: 0;
+      animation: fadeInElement 2s ease 0.3s forwards;
+    }
+
+    h3 {
+      margin-top: 10px;
+      font-weight: normal;
+      color: #d0e4f7;
+      opacity: 0;
+      animation: fadeInElement 2s ease 0.5s forwards;
+    }
+
+    @keyframes fadeInElement {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    table {
+      border-collapse: collapse;
+      margin-top: 30px;
+      width: 80%;
+      background-color: rgba(255, 255, 255, 0.95);
+      color: #1F4E79;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      opacity: 0;
+      animation: fadeInElement 2s ease 0.8s forwards;
+    }
+
+    th, td {
+      padding: 15px;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #1F4E79;
+      color: white;
+      text-transform: uppercase;
+      font-size: 1.1em;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f3f3f3;
+    }
+
+    tr:hover {
+      background-color: #d0e4f7;
+      transition: 0.3s;
+    }
+
+    .catatan {
+      margin-top: 30px;
+      width: 80%;
+      background: rgba(255,255,255,0.85);
+      color: #1F4E79;
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 0.95em;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      opacity: 0;
+      animation: fadeInElement 2s ease 1.2s forwards;
+    }
+
+    /* Notifikasi dengan efek keren */
+    .notif {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      background: linear-gradient(135deg, #ffffff, #cde6ff);
+      color: #1F4E79;
+      padding: 15px 25px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+      font-weight: 600;
+      font-size: 1em;
+      opacity: 0;
+      transform: translateY(40px) scale(0.9);
+      transition: all 0.7s ease;
+      border: 2px solid #fff;
+      text-shadow: 1px 1px 2px #fff;
+      animation: glow 2s infinite alternate;
+    }
+
+    @keyframes glow {
+      0% { box-shadow: 0 0 10px #a3d4ff, 0 0 20px #fff; }
+      100% { box-shadow: 0 0 25px #ffffff, 0 0 35px #cde6ff; }
+    }
+
+    .notif.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  </style>
+</head>
+<body>
+  <img src="assets/LOGO1.jpg" alt="Logo HIMATIC" class="logo">
+  <h1>JADWAL PIKET HIMATIC</h1>
+  <h3 id="mingguLabel"></h3>
+
+  <table id="jadwalTable">
+    <tr>
+      <th>Hari</th>
+      <th>Anggota Piket</th>
+    </tr>
+  </table>
+
+  <div class="catatan">
+    <strong>Catatan:</strong> Jadwal ini berotasi otomatis setiap minggu. Setelah minggu keempat, rotasi kembali ke minggu pertama.
+  </div>
+
+  <div class="notif" id="notif">🫵 Hei Jangan lupa piket hari ini 👌🫶!</div>
+
+  <script>
+    const anggota = [
+      "ALDI", "ALEX", "ALFI", "ARIEL", "DHANI", "EDO", "ERGI", "FARHAN",
+      "HANIF", "IDRIS", "ILYAS", "IRSYAD", "RAHMAN", "RIJAL", "SILA",
+      "TITO", "WAHYU", "ZAKIYA", "ZETIA"
+    ];
+
+    const hariPiket = ["Senin", "Selasa", "Rabu", "Kamis"];
+
+    let rotasi = [];
+    let index = 0;
+    for (let minggu = 1; minggu <= 4; minggu++) {
+      let mingguData = { minggu, data: [] };
+      for (let i = 0; i < hariPiket.length; i++) {
+        let jumlah = (i % 2 === 0) ? 4 : 3;
+        let piket = [];
+        for (let j = 0; j < jumlah; j++) {
+          piket.push(anggota[(index + j) % anggota.length]);
+        }
+        mingguData.data.push({ hari: hariPiket[i], anggota: piket });
+        index += jumlah;
+      }
+      rotasi.push(mingguData);
+    }
+
+    const today = new Date();
+    const mingguKe = Math.ceil(today.getDate() / 7);
+    const mingguAktif = rotasi[(mingguKe - 1) % 4];
+    document.getElementById("mingguLabel").innerText = `Minggu ke-${mingguAktif.minggu}`;
+
+    const table = document.getElementById("jadwalTable");
+    mingguAktif.data.forEach(row => {
+      let tr = document.createElement("tr");
+      tr.innerHTML = `<td>${row.hari}</td><td>${row.anggota.join(", ")}</td>`;
+      table.appendChild(tr);
+    });
+
+    // Efek muncul dan hilang lembut untuk notifikasi
+    window.onload = () => {
+      const notif = document.getElementById("notif");
+      setTimeout(() => notif.classList.add("show"), 1500);
+      setTimeout(() => notif.classList.remove("show"), 9000);
+    };
+  </script>
+</body>
+</html>
